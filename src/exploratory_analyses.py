@@ -107,4 +107,13 @@ if __name__ == "__main__":
                 #  UnknownTextPart error
 
             except UnknownTextPartError:
-                print()
+                # This except will be used to show us information on sentences that contain signs or
+                #  anything that we have yet to find a way to deal with.
+                print('This sentence contains parts that we are not handling correctly just yet:\n\n' + line)
+
+            finally:
+                # Because we are dealing with a lot of data, we do not want to have to re-do parts of
+                #  the analysis that we already finished, only because later on in the process we are
+                #  stumbling upon an error. So perhaps we can use this finally as a way to save the
+                #  progress.
+                pass
