@@ -11,12 +11,32 @@ It will contain:
 # -
 # IMPORTS
 import re
+from typing import List
 
 
 # -
 # -
 # -
 # DEFINE CLASSES
+class Person:
+    def __init__(self, name: str, age: int, sex: str, native_english: bool, native_spanish: bool):
+        self.name = name
+        self.sex = sex
+        self.age = age
+        self.native_english = native_english
+        self.native_spanish = native_spanish
+
+
+class ConversationSummary:
+    def __init__(self, word_count: int, word_count_english: int, word_count_spanish: int,
+                 um_count: int, persons: List[Person]):
+        self.word_count = word_count
+        self.word_count_english = word_count_english
+        self.word_count_spanish = word_count_spanish
+        self.um_count = um_count
+        self.persons = persons
+
+
 class UnknownTextPartError(Exception):
     pass
 
