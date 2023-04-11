@@ -1,5 +1,5 @@
 """"
-This file will contain the first exploratory analyses as done on the EN-ES spoken dataset.
+This file will contain the first exploratory analyses as done on the EN-ES Miami dataset.
 It will contain:
 
     1) Word count English words
@@ -11,7 +11,18 @@ It will contain:
 # -
 # IMPORTS
 import re
-from typing import List
+import urllib.request as urllib2
+from typing import List, Iterable, Dict
+
+
+# -
+# ABSOLUTES
+CONVERSATIONS: Dict[str: Iterable[int]] = {
+    'herring': range(1, 18),
+    'maria': {1, 2, 4, 7, 10, 16, 18, 19, 20, 21, 24, 27, 30, 31, 40},
+    'sastre': range(1, 14),
+    'zeledon': {1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 13, 14}
+}
 
 
 # -
@@ -45,9 +56,15 @@ class UnknownTextPartError(Exception):
 # -
 # -
 # DEFINE FUNCTIONS
+def get_filenames() -> Iterable[str]:
+    for name, numbers in CONVERSATIONS:
+        for number in numbers:
+            yield name + str(number) + '.cha'
+
+
 def is_part_of_conversation(line: str) -> bool:
     # In the .cha files we see that the actual conversational lines
-    #  are identified by starting with an asterix.
+    #  are identified by starting with an asterisk.
     return line[0] == '*'
 
 
@@ -76,10 +93,10 @@ def get_speaker(line: str) -> str:
 # -
 # MAIN
 if __name__ == "__main__":
-    with open('../data/herring1.cha', 'r') as file:
+    for file_name in get_filenames():
         last_speaker = ''
 
-        for line in file:
+        for line in urllib2.urlopen('http://siarad.org.uk/chats/miami/' + file_name):
             try:
                 if not is_part_of_conversation(line):
                     continue
