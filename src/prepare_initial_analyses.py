@@ -26,7 +26,6 @@ from string import ascii_letters
 
 # -
 # ABSOLUTES
-PROGRESSFILENAME = '../output/savedProgressV1.txt'
 CONVERSATIONS: Dict[str, Iterable[int]] = {
     'herring': {i for i in range(1, 18) if i != 4},
     'maria': {1, 2, 4, 7, 10, 16, 18, 19, 20, 21, 24, 27, 30, 31, 40},
@@ -79,16 +78,6 @@ class UnknownTextPartError(Exception):
 # -
 # -
 # DEFINE FUNCTIONS
-def get_finished_files() -> List[str]:
-    try:
-        with open(PROGRESSFILENAME, 'r') as progress_file:
-            return [line.split('\t')[0] for line in progress_file]
-
-    except FileNotFoundError:
-        # File does not exist yet.
-        return []
-
-
 def get_filenames() -> Iterable[str]:
     for name in CONVERSATIONS.keys():
         for number in CONVERSATIONS[name]:
@@ -131,7 +120,6 @@ def remove_non_spoken_parts(line: str) -> str:
         # 20) '<' or '>'         -> Any leftovers. Could mean anything.
         # 21) '+'                -> Any leftovers. Could mean anything.
         # 22) ':'                -> Any leftovers. Could mean anything.
-
         '',
         line
     )
@@ -144,7 +132,6 @@ def get_speaker(line: str) -> str:
 
 
 def get_line_summary(line: str) -> LineSummary:
-    # speaker = get_speaker(line) TODO: Use this
     spoken_line = remove_non_spoken_parts(line)
 
     unknown_text_parts = set(spoken_line).difference(ascii_letters + "ÁáÉéÍíÓóÚúüÑñ '-")
@@ -201,15 +188,11 @@ def process_file(file_name: str, progress_file: TextIO):
 # -
 # MAIN
 if __name__ == "__main__":
-    finished_files = get_finished_files()
-
-    with open(PROGRESSFILENAME, 'a') as file_to_save_progress_in:
+    with open('../output/summaryPerConversation.txt', 'w') as summary_per_conversation_file:
         try:
             for file_name in get_filenames():
-                if file_name in finished_files:
-                    continue
                 print(file_name)
-                process_file(file_name, file_to_save_progress_in)
+                process_file(file_name, summary_per_conversation_file)
 
         except UnknownTextPartError as unknown_text_part_error:
             # This except will be used to show us information on sentences that contain signs or
