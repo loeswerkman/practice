@@ -12,13 +12,15 @@ It will contain:
 # IMPORTS
 import re
 import urllib.request as urllib2
-from typing import List, Iterable, Dict
+from typing import List, Iterable, Dict, Set, TextIO
+from string import ascii_letters
 
 
 # -
 # ABSOLUTES
-CONVERSATIONS: Dict[str: Iterable[int]] = {
-    'herring': range(1, 18),
+PROGRESSFILENAME = '../output/savedProgressV1.txt'
+CONVERSATIONS: Dict[str, Iterable[int]] = {
+    'herring': {i for i in range(1, 18) if i != 4},
     'maria': {1, 2, 4, 7, 10, 16, 18, 19, 20, 21, 24, 27, 30, 31, 40},
     'sastre': range(1, 14),
     'zeledon': {1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 13, 14}
@@ -29,36 +31,59 @@ CONVERSATIONS: Dict[str: Iterable[int]] = {
 # -
 # -
 # DEFINE CLASSES
-class Person:
-    def __init__(self, name: str, age: int, sex: str, native_english: bool, native_spanish: bool):
-        self.name = name
-        self.sex = sex
-        self.age = age
-        self.native_english = native_english
-        self.native_spanish = native_spanish
+# class Person:
+#     def __init__(self, name: str, age: int, sex: str, native_english: bool, native_spanish: bool):
+#         self.name = name
+#         self.sex = sex
+#         self.age = age
+#         self.native_english = native_english
+#         self.native_spanish = native_spanish TODO: Add this in
 
 
-class ConversationSummary:
-    def __init__(self, word_count: int, word_count_english: int, word_count_spanish: int,
-                 um_count: int, persons: List[Person]):
+class LineSummary:
+    def __init__(self, word_count: int, word_count_english: int,
+                 word_count_spanish: int, um_count: int):
+        # self.speaker = speaker TODO: Add this in
         self.word_count = word_count
         self.word_count_english = word_count_english
         self.word_count_spanish = word_count_spanish
         self.um_count = um_count
-        self.persons = persons
+
+
+# class ConversationSummary:
+#     def __init__(self, file_name: str, word_count: int, word_count_english: int,
+#                  word_count_spanish: int, um_count: int):
+#         self.file_name = file_name
+#         self.word_count = word_count
+#         self.word_count_english = word_count_english
+#         self.word_count_spanish = word_count_spanish
+#         self.um_count = um_count
+        # self.persons = persons TODO: Add this in
 
 
 class UnknownTextPartError(Exception):
-    pass
+    def __init__(self, line: str, unknown_text_parts: Set[str]):
+        self.line = line
+        self.unknown_text_parts = unknown_text_parts
 
 
 # -
 # -
 # -
 # DEFINE FUNCTIONS
+def get_finished_files() -> List[str]:
+    try:
+        with open(PROGRESSFILENAME, 'r') as progress_file:
+            return [line.split('\t')[0] for line in progress_file]
+
+    except FileNotFoundError:
+        # File does not exist yet.
+        return []
+
+
 def get_filenames() -> Iterable[str]:
-    for name, numbers in CONVERSATIONS:
-        for number in numbers:
+    for name in CONVERSATIONS.keys():
+        for number in CONVERSATIONS[name]:
             yield name + str(number) + '.cha'
 
 
@@ -88,32 +113,82 @@ def get_speaker(line: str) -> str:
     return line[1:4]
 
 
+def get_line_summary(line: str) -> LineSummary:
+    # speaker = get_speaker(line) TODO: Use this
+    spoken_line = remove_non_spoken_parts(line)
+
+    unknown_text_parts = set(spoken_line).difference(ascii_letters + "ÁáÉéÍíÓóÚúüÑñ '-")
+    spoken_line.split()
+    if unknown_text_parts:
+        raise UnknownTextPartError(line, unknown_text_parts)
+
+    return get_all_line_counts(spoken_line)
+
+
+def get_all_line_counts(line: str) -> LineSummary:
+    um_count, spanish_word_count, english_word_count = (0, 0, 0)
+
+    words = line.split()
+    for word in words:
+        if word == 'um' or word == 'uh' or word == 'er':
+            um_count += 1
+        # TODO: Insert logic to calculate nr of English and Spanish words
+
+    return LineSummary(
+        word_count=len(words),
+        word_count_english=english_word_count,
+        word_count_spanish=spanish_word_count,
+        um_count=um_count
+    )
+
+
+def process_file(file_name: str, progress_file: TextIO):
+    um_count, word_count, spanish_word_count, english_word_count = (0, 0, 0, 0)
+    for line in urllib2.urlopen('http://siarad.org.uk/chats/miami/' + file_name):
+        line = line.decode('utf-8').rstrip()  # Removes the "b''" in "b'<line>'" and the "/n"
+        if not is_part_of_conversation(line):
+            continue
+
+        line_summary = get_line_summary(line)
+
+        um_count += line_summary.um_count
+        word_count += line_summary.word_count
+        spanish_word_count += line_summary.word_count_spanish
+        english_word_count += line_summary.word_count_english
+
+    # All lines were processed.
+    progress_file.write(
+        file_name + '\t'
+        + str(word_count) + '\t'
+        + str(english_word_count) + '\t'
+        + str(spanish_word_count) + '\t'
+        + str(um_count) + '\n'
+    )
+
+
 # -
 # -
 # -
 # MAIN
 if __name__ == "__main__":
-    for file_name in get_filenames():
-        last_speaker = ''
+    finished_files = get_finished_files()
 
-        for line in urllib2.urlopen('http://siarad.org.uk/chats/miami/' + file_name):
-            try:
-                if not is_part_of_conversation(line):
+    with open(PROGRESSFILENAME, 'a') as file_to_save_progress_in:
+        try:
+            for file_name in get_filenames():
+                if file_name in finished_files:
                     continue
+                print(file_name)
+                process_file(file_name, file_to_save_progress_in)
 
-                speaker = get_speaker(line)
-                spoken_line = remove_non_spoken_parts(line)
-                # LOES check for symbols that you don't know and if you find them, throw an
-                #  UnknownTextPart error
-
-            except UnknownTextPartError:
-                # This except will be used to show us information on sentences that contain signs or
-                #  anything that we have yet to find a way to deal with.
-                print('This sentence contains parts that we are not handling correctly just yet:\n\n' + line)
-
-            finally:
-                # Because we are dealing with a lot of data, we do not want to have to re-do parts of
-                #  the analysis that we already finished, only because later on in the process we are
-                #  stumbling upon an error. So perhaps we can use this finally as a way to save the
-                #  progress.
-                pass
+        except UnknownTextPartError as unknown_text_part_error:
+            # This except will be used to show us information on sentences that contain signs or
+            #  anything that we have yet to find a way to deal with. We print the sentence in
+            #  question so we can easily see the characters that we don't understand yet, and
+            #  can then add the necessary logic to the code and restart the code.
+            print(
+                'Error in file ' + file_name + ':\n'
+                + 'Find a way to handle the ' + str(unknown_text_part_error.unknown_text_parts)
+                + ' symbol(s) as found in the following line:\n'
+                + unknown_text_part_error.line
+            )
