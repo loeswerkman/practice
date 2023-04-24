@@ -95,13 +95,35 @@ def is_part_of_conversation(line: str) -> bool:
 
 def remove_non_spoken_parts(line: str) -> str:
     return re.sub(
-        '(\*[A-Z]{3}:\t|.*|<[^<]*>|\[/+]|\(\.+\))',
+        '(\*[A-Z]{3}:\t|.*|<[^<]*>|\[(x [0-9]+|[/"!*-]+)]|\(\.+\)|:?@s:(eng|eng&spa|spa|ita|fra)(\+(eng|spa))?'
+        + '|[.,?!]|\+<|\+\.\.[.?]|\+/+|\+"/|\+"|&=?[^ ]+'
+        + '|\[- (spa|eng)]|[()]|\[\?]|\+,|\[(= ?!|\*) .+]|_|\+[+^]|<|>|\+|:)',
         # Examples of what will be removed:
         # 1) '*LAU:   '          -> Identifying a speaker
         # 2) '28938_31313' -> Information on timing
         # 3) '<she is>'          -> ?
         # 4) '[//]'              -> Representing a pause
         # 5) '(.)'               -> ?
+        # 6) '@s:eng&spa+eng'    -> There to identify code-switching, but this one
+        #                            is more often wrong than not, so we remove it
+        # 7) '!?.,'               -> Ending a sentence or separating subsentences
+        # 8) '+<'                -> ?
+        # 9) '+...'              -> Representing a pause after finishing a sentence
+        # 10) '+//'              -> ?
+        # 11) '+"/'              -> ?
+        # 12) '+"'               -> ?
+        # 13a) '&=sigh'          -> Sounds that are not words
+        # 13b) '&da'             -> A ton of options, all unclear what they mean but they do not show up in the audio
+        # 14) '[- spa]'          -> Marker of code switching
+        # 15) '(' or ')'         -> Brackets around autofilled part of text
+        # 16) '[?]'              -> ?
+        # 17) '[=! laughing]'    -> laughter
+        # 18) '_'                -> ?
+        # 19) '++' or '+^'       -> ?
+        # 20) '<' or '>'         -> Any leftovers. Could mean anything.
+        # 21) '+'                -> Any leftovers. Could mean anything.
+        # 22) ':'                -> Any leftovers. Could mean anything.
+
         '',
         line
     )
