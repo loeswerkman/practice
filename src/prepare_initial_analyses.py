@@ -79,7 +79,7 @@ def remove_non_spoken_parts(line: str) -> str:
     return re.sub(
         '(\*[A-Z]{3}:\t|.*|<[^<]*>|\[(x [0-9]+|[/"!*-]+)]|\(\.+\)|:?@s:(eng|eng&spa|spa|ita|fra)(\+(eng|spa))?'
         + '|[.,?!]|\+<|\+\.\.[.?]|\+/+|\+"/|\+"|&=?[^ ]+'
-        + '|\[- (spa|eng)]|[()]|\[\?]|\+,|\[(= ?!|\*) .+]|_|\+[+^]|<|>|\+|:)',
+        + '|\[- (spa|eng)]|[()]|\[\?]|\+,|\[(= ?!|\*) .+]|_|\+[+^]|<|>|\+|:)',  # FixMe: Clean up regex
         # Examples of what will be removed:
         # 1) '*LAU:   '          -> Identifying a speaker
         # 2) '28938_31313' -> Information on timing
