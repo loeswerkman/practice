@@ -7,14 +7,14 @@ The first summary (summaryPerConversation.txt) will contain:
     2) TODO: Word count English words
     3) TODO: Word count Spanish words
     4) Counts of 'um' in the conversations
-    5) TODO: Counts of 'yeah' and 'like' when used as fillers
+    5) Counts of fillers 'yeah', 'like', 'pues', and 'eso' TODO: Calculations currently take not only fillers but ALL
 
 The second summary (summaryPerPerson.txt) will contain:
     1) Total word count per person
     2) TODO: Total English word count per person
     3) TODO: Total Spanish word count per person
     4) Counts of 'um' per person
-    5) TODO: Counts of 'yeah' and 'like' when used as fillers
+    5) Counts of fillers 'yeah', 'like', 'pues', and 'eso' TODO: Calculations currently take not only fillers but ALL
 """
 # -
 # IMPORTS
@@ -39,11 +39,16 @@ CONVERSATIONS: Dict[str, Iterable[int]] = {
 # -
 # DEFINE CLASSES
 class WordCountSummary:
-    def __init__(self, word_count: int, word_count_english: int, word_count_spanish: int, um_count: int):
+    def __init__(self, word_count: int, word_count_english: int, word_count_spanish: int, um_count: int,
+                 yeah_count: int, like_count: int, pues_count: int, eso_count: int):
         self.word_count = word_count
         self.word_count_english = word_count_english
         self.word_count_spanish = word_count_spanish
         self.um_count = um_count
+        self.yeah_count = yeah_count
+        self.like_count = like_count
+        self.pues_count = pues_count
+        self.eso_count = eso_count
 
 
 class UnknownTextPartError(Exception):
@@ -129,18 +134,31 @@ def get_line_summary(line: str) -> WordCountSummary:
 
 def get_all_line_counts(line: str) -> WordCountSummary:
     um_count, spanish_word_count, english_word_count = (0, 0, 0)
-
+    yeah_count, like_count, pues_count, eso_count = (0, 0, 0, 0)
     words = line.split()
     for word in words:
+        word = word.lower()
         if word == 'um' or word == 'uh' or word == 'er':
             um_count += 1
+        if word == 'yeah':
+            yeah_count += 1
+        if word == 'like':
+            like_count += 1
+        if word == 'pues':
+            pues_count += 1
+        if word == 'eso':
+            eso_count += 1
         # TODO: Insert logic to calculate nr of English and Spanish words
 
     return WordCountSummary(
         word_count=len(words),
         word_count_english=english_word_count,
         word_count_spanish=spanish_word_count,
-        um_count=um_count
+        um_count=um_count,
+        yeah_count=yeah_count,
+        like_count=like_count,
+        pues_count=pues_count,
+        eso_count=eso_count,
     )
 
 
@@ -153,16 +171,25 @@ def process_new_speaker_counts(speaker: str, line_summary: WordCountSummary):
             word_count_english=line_summary.word_count_english,
             word_count_spanish=line_summary.word_count_spanish,
             um_count=line_summary.um_count,
+            yeah_count=line_summary.yeah_count,
+            like_count=line_summary.like_count,
+            pues_count=line_summary.pues_count,
+            eso_count=line_summary.eso_count,
         )
     else:
         word_counts_per_speaker[speaker].word_count += line_summary.word_count
         word_counts_per_speaker[speaker].word_count_english += line_summary.word_count_english
         word_counts_per_speaker[speaker].word_count_spanish += line_summary.word_count_spanish
         word_counts_per_speaker[speaker].um_count += line_summary.um_count
+        word_counts_per_speaker[speaker].yeah_count += line_summary.yeah_count
+        word_counts_per_speaker[speaker].like_count += line_summary.like_count
+        word_counts_per_speaker[speaker].pues_count += line_summary.pues_count
+        word_counts_per_speaker[speaker].eso_count += line_summary.eso_count
 
 
 def process_file(file_name: str, progress_file: TextIO):
     convo_um_count, convo_word_count, convo_spanish_word_count, convo_english_word_count = (0, 0, 0, 0)
+    convo_yeah_count, convo_like_count, convo_pues_count, convo_eso_count = (0, 0, 0, 0)
 
     for line in urllib2.urlopen('http://siarad.org.uk/chats/miami/' + file_name):
         line = line.decode('utf-8').rstrip()  # Removes the "b''" in "b'<line>'" and the "/n"
@@ -173,10 +200,14 @@ def process_file(file_name: str, progress_file: TextIO):
         speaker = get_speaker(line)
         process_new_speaker_counts(speaker, line_summary)
 
-        convo_um_count += line_summary.um_count
         convo_word_count += line_summary.word_count
         convo_spanish_word_count += line_summary.word_count_spanish
         convo_english_word_count += line_summary.word_count_english
+        convo_um_count += line_summary.um_count
+        convo_yeah_count += line_summary.yeah_count
+        convo_like_count += line_summary.like_count
+        convo_pues_count += line_summary.pues_count
+        convo_eso_count += line_summary.eso_count
 
     # All lines were processed.
     progress_file.write(
@@ -184,7 +215,11 @@ def process_file(file_name: str, progress_file: TextIO):
         + str(convo_word_count) + '\t'
         + str(convo_english_word_count) + '\t'
         + str(convo_spanish_word_count) + '\t'
-        + str(convo_um_count) + '\n'
+        + str(convo_um_count) + '\t'
+        + str(convo_yeah_count) + '\t'
+        + str(convo_like_count) + '\t'
+        + str(convo_pues_count) + '\t'
+        + str(convo_eso_count) + '\n'
     )
 
 
@@ -193,7 +228,10 @@ def process_file(file_name: str, progress_file: TextIO):
 # -
 # MAIN
 if __name__ == "__main__":
+    columns = 'total\tenglish\tspanish\tum\tyeah\tlike\tpues\teso'
     with open('../output/summaryPerConversation.txt', 'w') as summary_per_conversation_file:
+        summary_per_conversation_file.write('conversation\t' + columns + '\n')  # Header line
+
         try:
             for file_name in get_filenames():
                 print(file_name)
@@ -212,6 +250,8 @@ if __name__ == "__main__":
             )
 
     with open('../output/summaryPerPerson.txt', 'w') as summary_per_person_file:
+        summary_per_person_file.write('name\t' + columns + '\n')  # Header line
+
         for speaker in word_counts_per_speaker.keys():
             print(speaker)
             summary_per_person_file.write(
@@ -219,5 +259,9 @@ if __name__ == "__main__":
                 + str(word_counts_per_speaker[speaker].word_count) + '\t'
                 + str(word_counts_per_speaker[speaker].word_count_english) + '\t'
                 + str(word_counts_per_speaker[speaker].word_count_spanish) + '\t'
-                + str(word_counts_per_speaker[speaker].um_count) + '\n'
+                + str(word_counts_per_speaker[speaker].um_count) + '\t'
+                + str(word_counts_per_speaker[speaker].yeah_count) + '\t'
+                + str(word_counts_per_speaker[speaker].like_count) + '\t'
+                + str(word_counts_per_speaker[speaker].pues_count) + '\t'
+                + str(word_counts_per_speaker[speaker].eso_count) + '\n'
             )

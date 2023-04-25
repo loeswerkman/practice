@@ -1,56 +1,57 @@
-herring1.cha	6262	0	0	37
-herring2.cha	5396	0	0	1
-herring3.cha	4816	0	0	15
-herring5.cha	4548	0	0	0
-herring6.cha	4460	0	0	39
-herring7.cha	4334	0	0	26
-herring8.cha	3878	0	0	24
-herring9.cha	6441	0	0	26
-herring10.cha	3660	0	0	2
-herring11.cha	4219	0	0	0
-herring12.cha	6144	0	0	3
-herring13.cha	3841	0	0	6
-herring14.cha	4973	0	0	6
-herring15.cha	5739	0	0	50
-herring16.cha	2545	0	0	13
-herring17.cha	5786	0	0	35
-maria1.cha	1639	0	0	1
-maria2.cha	172	0	0	0
-maria4.cha	1739	0	0	7
-maria7.cha	640	0	0	3
-maria40.cha	7386	0	0	3
-maria10.cha	1943	0	0	4
-maria16.cha	3040	0	0	11
-maria18.cha	4064	0	0	15
-maria19.cha	2671	0	0	8
-maria20.cha	1533	0	0	4
-maria21.cha	739	0	0	0
-maria24.cha	3332	0	0	7
-maria27.cha	4288	0	0	4
-maria30.cha	4174	0	0	25
-maria31.cha	2979	0	0	6
-sastre1.cha	6179	0	0	33
-sastre2.cha	7191	0	0	1
-sastre3.cha	6058	0	0	22
-sastre4.cha	5409	0	0	3
-sastre5.cha	4368	0	0	4
-sastre6.cha	5050	0	0	63
-sastre7.cha	4485	0	0	18
-sastre8.cha	5689	0	0	27
-sastre9.cha	8506	0	0	9
-sastre10.cha	8558	0	0	12
-sastre11.cha	6721	0	0	2
-sastre12.cha	6515	0	0	31
-sastre13.cha	6810	0	0	33
-zeledon1.cha	6800	0	0	16
-zeledon2.cha	5151	0	0	46
-zeledon3.cha	4370	0	0	45
-zeledon4.cha	4083	0	0	16
-zeledon5.cha	4147	0	0	1
-zeledon6.cha	6098	0	0	43
-zeledon7.cha	4001	0	0	9
-zeledon8.cha	6923	0	0	65
-zeledon9.cha	4404	0	0	44
-zeledon11.cha	5817	0	0	63
-zeledon13.cha	7686	0	0	28
-zeledon14.cha	6710	0	0	0
+conversation	total	english	spanish	um	yeah	like	pues	eso
+herring1.cha	6262	0	0	37	81	180	0	4
+herring2.cha	5396	0	0	1	2	11	119	23
+herring3.cha	4816	0	0	15	19	27	6	17
+herring5.cha	4548	0	0	0	6	1	2	45
+herring6.cha	4460	0	0	39	22	8	0	11
+herring7.cha	4334	0	0	26	160	121	0	2
+herring8.cha	3878	0	0	24	30	17	0	2
+herring9.cha	6441	0	0	26	51	57	0	0
+herring10.cha	3660	0	0	2	29	27	1	9
+herring11.cha	4219	0	0	0	3	0	3	38
+herring12.cha	6144	0	0	3	8	40	73	31
+herring13.cha	3841	0	0	6	65	27	0	12
+herring14.cha	4973	0	0	6	40	81	12	32
+herring15.cha	5739	0	0	51	125	315	0	0
+herring16.cha	2545	0	0	13	4	3	4	6
+herring17.cha	5786	0	0	35	66	90	6	63
+maria1.cha	1639	0	0	1	2	9	2	6
+maria2.cha	172	0	0	0	0	0	0	0
+maria4.cha	1739	0	0	7	8	15	0	2
+maria7.cha	640	0	0	3	0	1	0	1
+maria40.cha	7386	0	0	3	12	12	8	19
+maria10.cha	1943	0	0	4	1	8	0	0
+maria16.cha	3040	0	0	11	13	20	2	2
+maria18.cha	4064	0	0	15	25	14	0	1
+maria19.cha	2671	0	0	8	9	16	0	5
+maria20.cha	1533	0	0	4	3	8	0	1
+maria21.cha	739	0	0	0	0	0	1	5
+maria24.cha	3332	0	0	7	8	11	0	3
+maria27.cha	4288	0	0	6	14	12	0	2
+maria30.cha	4174	0	0	25	15	26	0	0
+maria31.cha	2979	0	0	6	8	19	3	6
+sastre1.cha	6179	0	0	33	69	25	1	28
+sastre2.cha	7191	0	0	1	30	6	20	50
+sastre3.cha	6058	0	0	22	28	22	8	37
+sastre4.cha	5409	0	0	3	92	98	0	7
+sastre5.cha	4368	0	0	4	13	4	7	32
+sastre6.cha	5050	0	0	63	53	45	0	3
+sastre7.cha	4485	0	0	18	77	115	0	1
+sastre8.cha	5689	0	0	27	64	31	0	13
+sastre9.cha	8506	0	0	9	126	41	2	25
+sastre10.cha	8558	0	0	12	130	105	0	6
+sastre11.cha	6721	0	0	2	37	57	1	30
+sastre12.cha	6515	0	0	31	109	116	1	3
+sastre13.cha	6810	0	0	33	164	489	0	0
+zeledon1.cha	6800	0	0	16	7	31	6	28
+zeledon2.cha	5151	0	0	46	144	149	0	0
+zeledon3.cha	4370	0	0	45	77	108	0	1
+zeledon4.cha	4083	0	0	16	35	22	4	34
+zeledon5.cha	4147	0	0	1	29	17	7	19
+zeledon6.cha	6098	0	0	43	73	142	0	5
+zeledon7.cha	4001	0	0	9	14	10	19	23
+zeledon8.cha	6923	0	0	65	70	35	3	19
+zeledon9.cha	4404	0	0	44	42	77	1	2
+zeledon11.cha	5817	0	0	63	96	222	0	0
+zeledon13.cha	7686	0	0	28	102	431	0	0
+zeledon14.cha	6710	0	0	0	6	13	4	27
