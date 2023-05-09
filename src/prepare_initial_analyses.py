@@ -19,6 +19,8 @@ from string import ascii_letters
 
 # -
 # ABSOLUTES
+import nltk
+
 CONVERSATIONS: Dict[str, Iterable[int]] = {
     'herring': {i for i in range(1, 18) if i != 4},
     'maria': {1, 2, 4, 7, 10, 16, 18, 19, 20, 21, 24, 27, 30, 31, 40},
@@ -33,15 +35,16 @@ CONVERSATIONS: Dict[str, Iterable[int]] = {
 # DEFINE CLASSES
 class WordCountSummary:
     def __init__(self, word_count: int, word_count_english: int, word_count_spanish: int, um_count: int,
-                 yeah_count: int, like_count: int, pues_count: int, eso_count: int):
+                 uh_count: int, em_count: int, eh_count: int, am_count: int, ah_count: int):
         self.word_count = word_count
         self.word_count_english = word_count_english
         self.word_count_spanish = word_count_spanish
         self.um_count = um_count
-        self.yeah_count = yeah_count
-        self.like_count = like_count
-        self.pues_count = pues_count
-        self.eso_count = eso_count
+        self.uh_count = uh_count
+        self.em_count = em_count
+        self.eh_count = eh_count
+        self.am_count = am_count
+        self.ah_count = ah_count
 
 
 class UnknownTextPartError(Exception):
@@ -119,21 +122,27 @@ def get_line_summary(line: str) -> WordCountSummary:
 
 
 def get_all_line_counts(line: str) -> WordCountSummary:
-    um_count, spanish_word_count, english_word_count = (0, 0, 0)
-    yeah_count, like_count, pues_count, eso_count = (0, 0, 0, 0)
+    spanish_word_count, english_word_count = (0, 0)
+    um_count, uh_count, em_count, eh_count, am_count, ah_count = (0, 0, 0, 0, 0, 0)
+
     words = line.split()
-    for word in words:
+    for i, word in enumerate(words):
         word = word.lower()
-        if word == 'um' or word == 'uh' or word == 'er':
-            um_count += 1
-        if word == 'yeah':
-            yeah_count += 1
-        if word == 'like':
-            like_count += 1
-        if word == 'pues':
-            pues_count += 1
-        if word == 'eso':
-            eso_count += 1
+        match word:
+            case 'um': um_count += 1
+            case 'uh': uh_count += 1
+            case 'em': em_count += 1
+            case 'uh': eh_count += 1
+            case 'am':
+                if nltk.pos_tag(nltk.word_tokenize(line), tagset="universal")[i][1] != 'VERB':
+                    # We are making sure that the 'am' we are finding is not used as a verb
+                    #  like in the sentence 'I am 22 years old'.
+                    # The pos_tag function returns a list where each word is represented by a
+                    #  tuple of which the first item is the word and the second the POS tag.
+                    # We are checking to ensure that the POS tag of our word is not a verb to
+                    #  filter out the 'am's with meaning such as in the sentence 'I am Loes'.
+                    am_count += 1
+            case 'ah': ah_count += 1
         # TODO: Insert logic to calculate nr of English and Spanish words
 
     return WordCountSummary(
@@ -141,10 +150,11 @@ def get_all_line_counts(line: str) -> WordCountSummary:
         word_count_english=english_word_count,
         word_count_spanish=spanish_word_count,
         um_count=um_count,
-        yeah_count=yeah_count,
-        like_count=like_count,
-        pues_count=pues_count,
-        eso_count=eso_count,
+        uh_count=uh_count,
+        em_count=em_count,
+        eh_count=eh_count,
+        am_count=am_count,
+        ah_count=ah_count
     )
 
 
@@ -165,20 +175,22 @@ def process_file(file_name: str, progress_file: TextIO):
                  word_count_english=line_summary.word_count_english,
                  word_count_spanish=line_summary.word_count_spanish,
                  um_count=line_summary.um_count,
-                 yeah_count=line_summary.yeah_count,
-                 like_count=line_summary.like_count,
-                 pues_count=line_summary.pues_count,
-                 eso_count=line_summary.eso_count,
+                 uh_count=line_summary.uh_count,
+                 em_count=line_summary.em_count,
+                 eh_count=line_summary.eh_count,
+                 am_count=line_summary.am_count,
+                 ah_count=line_summary.ah_count
             )
         else:
             word_counts_per_speaker[speaker].word_count += line_summary.word_count
             word_counts_per_speaker[speaker].word_count_english += line_summary.word_count_english
             word_counts_per_speaker[speaker].word_count_spanish += line_summary.word_count_spanish
             word_counts_per_speaker[speaker].um_count += line_summary.um_count
-            word_counts_per_speaker[speaker].yeah_count += line_summary.yeah_count
-            word_counts_per_speaker[speaker].like_count += line_summary.like_count
-            word_counts_per_speaker[speaker].pues_count += line_summary.pues_count
-            word_counts_per_speaker[speaker].eso_count += line_summary.eso_count
+            word_counts_per_speaker[speaker].uh_count += line_summary.uh_count
+            word_counts_per_speaker[speaker].em_count += line_summary.em_count
+            word_counts_per_speaker[speaker].eh_count += line_summary.eh_count
+            word_counts_per_speaker[speaker].am_count += line_summary.am_count
+            word_counts_per_speaker[speaker].ah_count += line_summary.ah_count
 
     # All lines were processed.
     write_summary_file(file_name, progress_file, word_counts_per_speaker)
@@ -193,10 +205,11 @@ def write_summary_file(file_name, progress_file, word_counts_per_speaker):
             + str(word_counts_per_speaker[speaker].word_count_english) + '\t'
             + str(word_counts_per_speaker[speaker].word_count_spanish) + '\t'
             + str(word_counts_per_speaker[speaker].um_count) + '\t'
-            + str(word_counts_per_speaker[speaker].yeah_count) + '\t'
-            + str(word_counts_per_speaker[speaker].like_count) + '\t'
-            + str(word_counts_per_speaker[speaker].pues_count) + '\t'
-            + str(word_counts_per_speaker[speaker].eso_count) + '\n'
+            + str(word_counts_per_speaker[speaker].uh_count) + '\t'
+            + str(word_counts_per_speaker[speaker].em_count) + '\t'
+            + str(word_counts_per_speaker[speaker].eh_count) + '\t'
+            + str(word_counts_per_speaker[speaker].am_count) + '\t'
+            + str(word_counts_per_speaker[speaker].ah_count) + '\n'
         )
 
 
@@ -207,7 +220,7 @@ def write_summary_file(file_name, progress_file, word_counts_per_speaker):
 if __name__ == "__main__":
     with open('../output/summaryPerPersonPerConversation.txt', 'w') as summary_file:
         summary_file.write(
-            'speaker\tconversation\ttotal\tenglish\tspanish\tum\tyeah\tlike\tpues\teso\n'
+            'speaker\tconversation\ttotal\tenglish\tspanish\tum\tuh\tem\teh\tam\tah\n'
         )  # Header line
 
         try:
