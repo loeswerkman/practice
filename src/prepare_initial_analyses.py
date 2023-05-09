@@ -1,26 +1,19 @@
 """
-This file will prepare two summaries of the EN-ES Miami dataset that can be used to then perform
+This file will prepare a summary of the EN-ES Miami dataset that can be used to then perform
  the exploratory analyses on in a second Jupyter Notebook file.
 
-The first summary (summaryPerConversation.txt) will contain:
-    1) Total word count per conversation
+The summary (summaryPerPersonPerConversation.txt) will contain:
+    1) Total word count per speaker per conversation
     2) TODO: Word count English words
     3) TODO: Word count Spanish words
     4) Counts of 'um' in the conversations
-    5) Counts of fillers 'yeah', 'like', 'pues', and 'eso' TODO: Calculations currently take not only fillers but ALL
-
-The second summary (summaryPerPerson.txt) will contain:
-    1) Total word count per person
-    2) TODO: Total English word count per person
-    3) TODO: Total Spanish word count per person
-    4) Counts of 'um' per person
     5) Counts of fillers 'yeah', 'like', 'pues', and 'eso' TODO: Calculations currently take not only fillers but ALL
 """
 # -
 # IMPORTS
 import re
 import urllib.request as urllib2
-from typing import List, Iterable, Dict, Set, TextIO
+from typing import List, Iterable, Dict, Set, TextIO, Tuple
 from string import ascii_letters
 
 
@@ -55,13 +48,6 @@ class UnknownTextPartError(Exception):
     def __init__(self, line: str, unknown_text_parts: Set[str]):
         self.line = line
         self.unknown_text_parts = unknown_text_parts
-
-
-# -
-# -
-# -
-# SUPER UGLY SOLUTION USING A SORT OF SUPERGLOBAL FixMe: Make prettier please!
-word_counts_per_speaker: Dict[str, WordCountSummary] = {}
 
 
 # -
@@ -162,34 +148,8 @@ def get_all_line_counts(line: str) -> WordCountSummary:
     )
 
 
-def process_new_speaker_counts(speaker: str, line_summary: WordCountSummary):
-    global word_counts_per_speaker
-
-    if speaker not in word_counts_per_speaker.keys():
-        word_counts_per_speaker[speaker] = WordCountSummary(
-            word_count=line_summary.word_count,
-            word_count_english=line_summary.word_count_english,
-            word_count_spanish=line_summary.word_count_spanish,
-            um_count=line_summary.um_count,
-            yeah_count=line_summary.yeah_count,
-            like_count=line_summary.like_count,
-            pues_count=line_summary.pues_count,
-            eso_count=line_summary.eso_count,
-        )
-    else:
-        word_counts_per_speaker[speaker].word_count += line_summary.word_count
-        word_counts_per_speaker[speaker].word_count_english += line_summary.word_count_english
-        word_counts_per_speaker[speaker].word_count_spanish += line_summary.word_count_spanish
-        word_counts_per_speaker[speaker].um_count += line_summary.um_count
-        word_counts_per_speaker[speaker].yeah_count += line_summary.yeah_count
-        word_counts_per_speaker[speaker].like_count += line_summary.like_count
-        word_counts_per_speaker[speaker].pues_count += line_summary.pues_count
-        word_counts_per_speaker[speaker].eso_count += line_summary.eso_count
-
-
 def process_file(file_name: str, progress_file: TextIO):
-    convo_um_count, convo_word_count, convo_spanish_word_count, convo_english_word_count = (0, 0, 0, 0)
-    convo_yeah_count, convo_like_count, convo_pues_count, convo_eso_count = (0, 0, 0, 0)
+    word_counts_per_speaker: Dict[str, WordCountSummary] = {}
 
     for line in urllib2.urlopen('http://siarad.org.uk/chats/miami/' + file_name):
         line = line.decode('utf-8').rstrip()  # Removes the "b''" in "b'<line>'" and the "/n"
@@ -198,29 +158,46 @@ def process_file(file_name: str, progress_file: TextIO):
 
         line_summary = get_line_summary(line)
         speaker = get_speaker(line)
-        process_new_speaker_counts(speaker, line_summary)
 
-        convo_word_count += line_summary.word_count
-        convo_spanish_word_count += line_summary.word_count_spanish
-        convo_english_word_count += line_summary.word_count_english
-        convo_um_count += line_summary.um_count
-        convo_yeah_count += line_summary.yeah_count
-        convo_like_count += line_summary.like_count
-        convo_pues_count += line_summary.pues_count
-        convo_eso_count += line_summary.eso_count
+        if speaker not in word_counts_per_speaker.keys():
+            word_counts_per_speaker[speaker] = WordCountSummary(
+                 word_count=line_summary.word_count,
+                 word_count_english=line_summary.word_count_english,
+                 word_count_spanish=line_summary.word_count_spanish,
+                 um_count=line_summary.um_count,
+                 yeah_count=line_summary.yeah_count,
+                 like_count=line_summary.like_count,
+                 pues_count=line_summary.pues_count,
+                 eso_count=line_summary.eso_count,
+            )
+        else:
+            word_counts_per_speaker[speaker].word_count += line_summary.word_count
+            word_counts_per_speaker[speaker].word_count_english += line_summary.word_count_english
+            word_counts_per_speaker[speaker].word_count_spanish += line_summary.word_count_spanish
+            word_counts_per_speaker[speaker].um_count += line_summary.um_count
+            word_counts_per_speaker[speaker].yeah_count += line_summary.yeah_count
+            word_counts_per_speaker[speaker].like_count += line_summary.like_count
+            word_counts_per_speaker[speaker].pues_count += line_summary.pues_count
+            word_counts_per_speaker[speaker].eso_count += line_summary.eso_count
 
     # All lines were processed.
-    progress_file.write(
-        file_name + '\t'
-        + str(convo_word_count) + '\t'
-        + str(convo_english_word_count) + '\t'
-        + str(convo_spanish_word_count) + '\t'
-        + str(convo_um_count) + '\t'
-        + str(convo_yeah_count) + '\t'
-        + str(convo_like_count) + '\t'
-        + str(convo_pues_count) + '\t'
-        + str(convo_eso_count) + '\n'
-    )
+    write_summary_file(file_name, progress_file, word_counts_per_speaker)
+
+
+def write_summary_file(file_name, progress_file, word_counts_per_speaker):
+    for speaker in word_counts_per_speaker.keys():
+        progress_file.write(
+            speaker + '\t'
+            + file_name + '\t'
+            + str(word_counts_per_speaker[speaker].word_count) + '\t'
+            + str(word_counts_per_speaker[speaker].word_count_english) + '\t'
+            + str(word_counts_per_speaker[speaker].word_count_spanish) + '\t'
+            + str(word_counts_per_speaker[speaker].um_count) + '\t'
+            + str(word_counts_per_speaker[speaker].yeah_count) + '\t'
+            + str(word_counts_per_speaker[speaker].like_count) + '\t'
+            + str(word_counts_per_speaker[speaker].pues_count) + '\t'
+            + str(word_counts_per_speaker[speaker].eso_count) + '\n'
+        )
 
 
 # -
@@ -228,14 +205,15 @@ def process_file(file_name: str, progress_file: TextIO):
 # -
 # MAIN
 if __name__ == "__main__":
-    columns = 'total\tenglish\tspanish\tum\tyeah\tlike\tpues\teso'
-    with open('../output/summaryPerConversation.txt', 'w') as summary_per_conversation_file:
-        summary_per_conversation_file.write('conversation\t' + columns + '\n')  # Header line
+    with open('../output/summaryPerPersonPerConversation.txt', 'w') as summary_file:
+        summary_file.write(
+            'speaker\tconversation\ttotal\tenglish\tspanish\tum\tyeah\tlike\tpues\teso\n'
+        )  # Header line
 
         try:
             for file_name in get_filenames():
                 print(file_name)
-                process_file(file_name, summary_per_conversation_file)
+                process_file(file_name, summary_file)
 
         except UnknownTextPartError as unknown_text_part_error:
             # This except will be used to show us information on sentences that contain signs or
@@ -243,25 +221,7 @@ if __name__ == "__main__":
             #  question, so we can easily see the characters that we don't understand yet, and
             #  can then add the necessary logic to the code and restart the code.
             exit(
-                'Error in file ' + file_name + ':\n'
-                + 'Find a way to handle the ' + str(unknown_text_part_error.unknown_text_parts)
+                'Error: Find a way to handle the ' + str(unknown_text_part_error.unknown_text_parts)
                 + ' symbol(s) as found in the following line:\n'
                 + unknown_text_part_error.line
-            )
-
-    with open('../output/summaryPerPerson.txt', 'w') as summary_per_person_file:
-        summary_per_person_file.write('name\t' + columns + '\n')  # Header line
-
-        for speaker in word_counts_per_speaker.keys():
-            print(speaker)
-            summary_per_person_file.write(
-                speaker + '\t'
-                + str(word_counts_per_speaker[speaker].word_count) + '\t'
-                + str(word_counts_per_speaker[speaker].word_count_english) + '\t'
-                + str(word_counts_per_speaker[speaker].word_count_spanish) + '\t'
-                + str(word_counts_per_speaker[speaker].um_count) + '\t'
-                + str(word_counts_per_speaker[speaker].yeah_count) + '\t'
-                + str(word_counts_per_speaker[speaker].like_count) + '\t'
-                + str(word_counts_per_speaker[speaker].pues_count) + '\t'
-                + str(word_counts_per_speaker[speaker].eso_count) + '\n'
             )
