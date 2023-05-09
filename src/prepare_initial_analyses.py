@@ -6,8 +6,7 @@ The summary (summaryPerPersonPerConversation.txt) will contain:
     1) Total word count per speaker per conversation
     2) TODO: Word count English words
     3) TODO: Word count Spanish words
-    4) Counts of 'um' in the conversations
-    5) Counts of fillers 'yeah', 'like', 'pues', and 'eso' TODO: Calculations currently take not only fillers but ALL
+    4) Counts of filler words 'um', 'uh', 'em', 'eh', 'ah' and 'am' in the conversations
 """
 # -
 # IMPORTS
